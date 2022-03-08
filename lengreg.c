@@ -41,7 +41,7 @@ void elim_regla_ls(void* r){
 }
 
 void print_regla(Regla* r){
-    printf("(%s,'%c') ",r->edo,r->simb);
+    printf("(%c,'%s') ",r->simb,r->edo);
     //printf("\n");
 }
 void print_regla_ls(void* r){

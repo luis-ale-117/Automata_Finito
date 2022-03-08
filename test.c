@@ -234,12 +234,31 @@ void test_lee_estados_arch(){
     char nom_arch[] = "input.txt";
     FILE* f = fopen(nom_arch,"r");
     AF* a = crea_AF();
+    Lista estados_destino = crea_ls();
     if(f==NULL){
         printf("Error al abrir el archivo %s\n",nom_arch);
     }
     extrae_edos_arch(f,a);
+    extrae_acept_arch(f,a);
+    extrae_inicio_arch(f,a);
+    extrae_alfa_arch(f,a);
+    extrae_func_arch(f,a);
     fclose(f);
-    printf("Lectura de la primer linea correcta:\n");
+    printf("Lectura del archivo correcta:\n");
     print_AF(a);
+    char cad[] =  "axba";
+    lee_cadena_AF(a,&estados_destino,cad);
+    printf("Estado inicial: %s, Cadena: %s\n",a->inicio,cad);
+    printf("Estados finales: {");
+    print_ls(estados_destino,print_estado_ls);
+    printf("}\n");
+    
+    if(cad_aceptada_AF(a,&estados_destino/*,&estados_aceptacion*/)==0){
+        printf("Cadena \"%s\" aceptada por el automata\n",cad);
+    }
+    else{
+        printf("Cadena \"%s\" NO aceptada por el automata\n",cad);
+    }
+
     elim_AF(a);
 }
