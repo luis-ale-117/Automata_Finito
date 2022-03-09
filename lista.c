@@ -14,6 +14,32 @@ int push_ls(Lista* lis,void* nuevo){
     *lis = n;
     return OK;
 }
+
+int push_end_ls(Lista* lis,void* nuevo){
+    if(lis==NULL){
+        return APU_INVAL;
+    }
+    Nodo* n = (Nodo*)malloc(sizeof(Nodo));
+    Nodo* aux;
+    if(n==NULL){
+        return NO_MEM;
+    }
+    n->dat = nuevo;
+    n->sig = NULL;
+    if(*lis==NULL){//Si la lista esta vacia
+        *lis = n;
+        return OK;
+    }
+    aux = *lis;
+    n->sig = *lis;
+    while(n->sig!=NULL){
+        aux = n->sig;
+        n->sig = aux->sig;
+    }
+    aux->sig = n;
+    return OK;
+}
+
 void print_ls(Lista lis,void (*func_print)(void* )){
     while (lis != NULL){
         (*func_print)(lis->dat);

@@ -242,11 +242,14 @@ void test_lee_estados_arch(){
     extrae_acept_arch(f,a);
     extrae_inicio_arch(f,a);
     extrae_alfa_arch(f,a);
+    inicializa_funciones_AF(a);
     extrae_func_arch(f,a);
     fclose(f);
+    print_AF(a);
+    config_estado_error_AF(a);
     printf("Lectura del archivo correcta:\n");
     print_AF(a);
-    char cad[] =  "axba";
+    char cad[] =  "aba";
     lee_cadena_AF(a,&estados_destino,cad);
     printf("Estado inicial: %s, Cadena: %s\n",a->inicio,cad);
     printf("Estados finales: {");
@@ -261,4 +264,6 @@ void test_lee_estados_arch(){
     }
 
     elim_AF(a);
+    elim_ls(&estados_destino,free);
+    printf("Eliminacion de AFD correcta:\n");
 }

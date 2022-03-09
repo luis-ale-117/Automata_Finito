@@ -20,14 +20,12 @@ Regla* crea_regla(Estado edo_dest, Simbolo simb){
     }
     return r;
 }
-
 int igualdad_regla(Regla* r, Estado edo, Simbolo simb){
     if(edo==NULL || r==NULL){
         return APU_INVAL;
     }
     return strcmp(r->edo,edo)==0 && r->simb==simb? 0 : 1;
 }
-
 void elim_regla(Regla* r){
     if(r==NULL){
         return;
@@ -39,13 +37,42 @@ void elim_regla(Regla* r){
 void elim_regla_ls(void* r){
     elim_regla((Regla*)r);
 }
-
 void print_regla(Regla* r){
     printf("(%c,'%s') ",r->simb,r->edo);
-    //printf("\n");
 }
 void print_regla_ls(void* r){
     print_regla((Regla*)r);
+}
+
+MError* crea_merror(Estado edo_dest, Simbolo simb){
+    if(edo_dest==NULL){
+        return NULL;
+    }
+    MError* mer = (MError*)malloc(sizeof(MError));
+    Estado edo_aux = (Estado)malloc((strlen(edo_dest)+1)*sizeof(char));
+    if(mer!=NULL && edo_aux!=NULL){
+        strcpy(edo_aux,edo_dest);
+        mer->edo = edo_aux;
+        mer->simb = simb;
+    }
+    return mer;
+}
+void elim_merror(MError* mer){
+    if(mer==NULL){
+        return;
+    }
+    free(mer->edo);
+    free(mer);
+    return;
+}
+void elim_merror_ls(void* mer){
+    elim_regla((MError*)mer);
+}
+void print_merror(MError* mer){
+    printf("%s(%c) ",mer->edo,mer->simb);
+}
+void print_merror_ls(void* mer){
+    print_merror((MError*)mer);
 }
 
 Funcion* crea_funcion(Estado edo){
@@ -61,7 +88,6 @@ Funcion* crea_funcion(Estado edo){
     }
     return nueva;
 }
-
 int agrega_regla_funcion(Funcion* f, Estado edo_dest, Simbolo simb){
     if(f==NULL || edo_dest==NULL){
         return APU_INVAL;
@@ -82,9 +108,8 @@ int agrega_regla_funcion(Funcion* f, Estado edo_dest, Simbolo simb){
     if(r==NULL){
         return NO_MEM;
     }
-    return push_ls(&f->transiciones,r);
+    return push_end_ls(&f->transiciones,r);
 }
-
 void elim_funcion(Funcion* f){
     if(f==NULL){
         return;
@@ -148,7 +173,7 @@ int agrega_estado_AF(AF* a,Estado edo){
         return NO_MEM;
     }
     strcpy(nuevo,edo);
-    return push_ls(&a->conjunto_edos,nuevo);
+    return push_end_ls(&a->conjunto_edos,nuevo);
 }
 int existe_estado_AF(AF* a, Estado edo){
     if(a==NULL || edo==NULL){
@@ -191,7 +216,7 @@ int agrega_aceptacion_AF(AF* a, Estado edo){
         return NO_MEM;
     }
     strcpy(nuevo,edo);
-    return push_ls(&a->aceptacion_edos,nuevo);
+    return push_end_ls(&a->aceptacion_edos,nuevo);
 }
 int pon_inicio_AF(AF* a, Estado edo){
     if(a==NULL || edo==NULL){
@@ -228,6 +253,26 @@ int pon_alfabeto_AF(AF* a, Simbolo* alf){
     a->alfabeto = nuevo;
     return OK;
 }
+int inicializa_funciones_AF(AF* a){
+    if(a==NULL){
+        return APU_INVAL;
+    }
+    Nodo* aux_edo = a->conjunto_edos;
+    Funcion* f_aux=NULL;
+    Estado edo=NULL;
+    while(aux_edo!=NULL){
+        edo = (Estado)aux_edo->dat;
+        f_aux = crea_funcion(edo);
+        if(f_aux==NULL){
+            return NO_MEM;
+        }
+        else if(push_end_ls(&a->func_transicion,f_aux) != OK){
+            return NO_MEM;
+        }
+        aux_edo=aux_edo->sig;
+    }
+    return OK;
+}
 int agrega_funcion_AF(AF* a, Estado edo_orig, Estado edo_dest, Simbolo simb){
     if(a==NULL || edo_orig==NULL || edo_dest==NULL){
         return APU_INVAL;
@@ -257,11 +302,53 @@ int agrega_funcion_AF(AF* a, Estado edo_orig, Estado edo_dest, Simbolo simb){
         if(f_aux==NULL){
             return NO_MEM;
         }
-        else if(push_ls(&a->func_transicion,f_aux) != OK){
+        else if(push_end_ls(&a->func_transicion,f_aux) != OK){
             return NO_MEM;
         }
     }
     return agrega_regla_funcion(f_aux,edo_dest,simb);
+}
+int config_estado_error_AF(AF* a){
+    if(a==NULL){
+        return APU_INVAL;
+    }
+    agrega_estado_AF(a,EDO_ERROR);
+    /*Transicion desde Error hacia Error con cada simbolo del alfabeto*/
+    for(int i=0; i<strlen(a->alfabeto);i++){
+        agrega_funcion_AF(a,EDO_ERROR,EDO_ERROR,(a->alfabeto)[i]);
+    }
+    Nodo* aux_trans = a->func_transicion;
+    Nodo* aux_regla = NULL;
+    Funcion* f_aux = NULL;
+    Regla* r_aux = NULL;
+    int ig=1;//No es igual a priori
+    //Recorre cada funcion
+    while(aux_trans != NULL){
+        f_aux = (Funcion*)aux_trans->dat;
+        aux_trans = aux_trans->sig;
+        aux_regla = f_aux->transiciones;
+        //Recorre cada regla de la funcion
+        if(aux_regla==NULL){
+            for(int i=0; i<strlen(a->alfabeto);i++){
+                agrega_funcion_AF(a,f_aux->origen,EDO_ERROR,(a->alfabeto)[i]);
+            }
+        }
+        else{
+            for(int i=0; i<strlen(a->alfabeto);i++){
+                ig=1;
+                aux_regla = f_aux->transiciones;
+                while (aux_regla!=NULL){
+                    r_aux = (Regla*)aux_regla->dat;
+                    ig = r_aux->simb==(a->alfabeto)[i]?0:ig;
+                    aux_regla = aux_regla->sig;
+                }
+                if(ig!=0){//No existe esa transicion
+                    agrega_funcion_AF(a,f_aux->origen,EDO_ERROR,(a->alfabeto)[i]);
+                }
+            }
+        }
+    }
+    return OK;
 }
 void print_AF(AF* a){
     if(a==NULL){
@@ -277,7 +364,6 @@ void print_AF(AF* a){
     printf("Funcion de transicion:\n");
     print_ls(a->func_transicion,print_funcion_ls);
 }
-
 int repetidos_elim_aux(Lista* edos, Estado edo_elim){
     if(edos==NULL || edo_elim==NULL){
         return APU_INVAL;
@@ -358,7 +444,6 @@ int lee_simb_funcion_AF(Funcion *f, Lista* edos_destino, Simbolo simb){
     }
     return OK;
 }
-
 int lee_simb_estado_AF(AF *a, Lista* edos_destino,Estado edo_actual, Simbolo simb){
     if(a==NULL || edos_destino==NULL || edo_actual==NULL){
         return APU_INVAL;
@@ -383,7 +468,6 @@ int lee_simb_estado_AF(AF *a, Lista* edos_destino,Estado edo_actual, Simbolo sim
     int err = lee_simb_funcion_AF(f_aux, edos_destino,simb);
     return err;
 }
-
 int lee_simb_conjunto_AF(AF *a, Lista* edos_destino,Lista* edos_actuales, Simbolo simb){
     if(a==NULL || edos_destino==NULL || edos_actuales==NULL){
         return APU_INVAL;
@@ -403,7 +487,6 @@ int lee_simb_conjunto_AF(AF *a, Lista* edos_destino,Lista* edos_actuales, Simbol
     repetidos_elim(edos_destino);
     return err;
 }
-
 int lee_cadena_AF(AF* a, Lista* edos_final,Simbolo* cad){
     if(a==NULL || edos_final==NULL || cad==NULL){
         return APU_INVAL;
@@ -431,7 +514,6 @@ int lee_cadena_AF(AF* a, Lista* edos_final,Simbolo* cad){
     *edos_final = edos_origen;
     return OK;
 }
-
 int cad_aceptada_AF(AF* a,Lista* edos_final/*,Lista* edos_acept*/){
     if(a==NULL || edos_final==NULL /*|| edos_acept==NULL*/){
         return APU_INVAL;
@@ -459,4 +541,17 @@ int cad_aceptada_AF(AF* a,Lista* edos_final/*,Lista* edos_acept*/){
         aux_acep = a->aceptacion_edos;
     }
     return ig;
+}
+int cad_recur_print_AF(AF* a, Estado edo_actual, Simbolo* cad, int indice_cad,Lista errores,Lista camino){
+    if(a==NULL || cad==NULL || edo_actual==NULL || indice_cad<0){
+        return APU_INVAL;
+    }
+    //if()
+    return OK;
+}
+int lee_cadena_recur_print_AF(AF* a, Simbolo* cad){
+    if(a==NULL || cad==NULL){
+        return APU_INVAL;
+    }
+    return OK;
 }
