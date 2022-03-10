@@ -9,6 +9,7 @@ void test_lee_estado_AF();
 void test_lee_conjunto_AF();
 void test_lee_cad_AF();
 void test_lee_estados_arch();
+void test_lectura_recursiva();
 
 int main(int argc, char** argv){
     /*test_regla();
@@ -17,7 +18,8 @@ int main(int argc, char** argv){
     test_lee_estado_AF();
     test_lee_conjunto_AF();
     test_lee_cad_AF();*/
-    test_lee_estados_arch();
+    //test_lee_estados_arch();
+    test_lectura_recursiva();
     return 0;
 }
 
@@ -265,5 +267,33 @@ void test_lee_estados_arch(){
 
     elim_AF(a);
     elim_ls(&estados_destino,free);
+    printf("Eliminacion de AFD correcta:\n");
+}
+void test_lectura_recursiva(){
+    printf(">>>>>>>>>>>>>>  TEST LINEA ARCH <<<<<<<<<<<<<<<\n");
+    char nom_arch[] = "input.txt";
+    FILE* f = fopen(nom_arch,"r");
+    AF* a = crea_AF();
+    //Lista estados_destino = crea_ls();
+    if(f==NULL){
+        printf("Error al abrir el archivo %s\n",nom_arch);
+    }
+    extrae_edos_arch(f,a);
+    extrae_acept_arch(f,a);
+    extrae_inicio_arch(f,a);
+    extrae_alfa_arch(f,a);
+    inicializa_funciones_AF(a);
+    extrae_func_arch(f,a);
+    fclose(f);
+    printf("Lectura del archivo correcta...\n");
+    config_estado_error_AF(a);
+    printf("Estados de error configurados...\n");
+    print_AF(a);
+    char cad[] =  "axba";
+    printf("Estado inicial: %s, Cadena: %s\n",a->inicio,cad);
+    printf("Resultados:\n");
+    lee_cadena_recur_print_AF(a,cad);
+    
+    elim_AF(a);
     printf("Eliminacion de AFD correcta:\n");
 }

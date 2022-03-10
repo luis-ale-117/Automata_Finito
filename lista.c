@@ -39,7 +39,39 @@ int push_end_ls(Lista* lis,void* nuevo){
     aux->sig = n;
     return OK;
 }
-
+int pop_ls(Lista* lis,void** nuevo){
+    if(lis==NULL || nuevo==NULL){
+        return APU_INVAL;
+    }
+    if(*lis==NULL){
+        *nuevo=NULL;
+        return OK;
+    }
+    Nodo* aux = *lis;
+    *nuevo = (*lis)->dat;
+    *lis = (*lis)->sig;
+    free(aux);
+    return OK;
+}
+int pop_end_ls(Lista* lis,void** nuevo){
+    if(lis==NULL || nuevo==NULL){
+        return APU_INVAL;
+    }
+    if(*lis==NULL){
+        *nuevo=NULL;
+        return OK;
+    }
+    Nodo* aux = *lis;
+    Nodo* aux_sig = aux;
+    while (aux_sig->sig != NULL){
+        aux = aux_sig;
+        aux_sig = aux->sig;
+    }
+    *nuevo = aux_sig->dat;
+    aux->sig = aux_sig->sig;
+    free(aux_sig);
+    return OK;
+}
 void print_ls(Lista lis,void (*func_print)(void* )){
     while (lis != NULL){
         (*func_print)(lis->dat);

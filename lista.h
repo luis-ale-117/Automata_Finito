@@ -18,6 +18,8 @@ typedef Nodo* Lista;
 Lista crea_ls();
 int push_ls(Lista* ls,void* nuevo);
 int push_end_ls(Lista* ls,void* nuevo);
+int pop_ls(Lista* ls,void** nuevo);
+int pop_end_ls(Lista* ls,void** nuevo);
 void print_ls(Lista, void (*print_node)(void* ));
 void elim_ls(Lista* lis,void (*func_elim)(void* ));
 

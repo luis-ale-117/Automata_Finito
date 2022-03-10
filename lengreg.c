@@ -417,7 +417,32 @@ int repetidos_elim(Lista* edos){
         aux = aux->sig;
     }
 }
-
+int funcion_de_estado(AF* a, Estado edo,Funcion** f){
+    if(a==NULL || edo==NULL || f==NULL){
+        return APU_INVAL;
+    }
+    if(existe_estado_AF(a,edo)!=0){
+        return ESTADO_INVAL;
+    }
+    /*Busca si la funcion ya existe*/
+    Nodo* aux = a->func_transicion;
+    Funcion* f_aux=NULL;
+    int exis_func = 1;//No exite a priori
+    while(aux != NULL){
+        f_aux = (Funcion*)aux->dat;
+        aux = aux->sig;
+        exis_func = strcmp(f_aux->origen,edo);
+        if(exis_func==0){
+            break;
+        }
+    }
+    if(exis_func!=0){//No existe la funcion
+        *f = NULL;
+        return ESTADO_INVAL;
+    }
+    *f = f_aux;
+    return OK;
+}
 int lee_simb_funcion_AF(Funcion *f, Lista* edos_destino, Simbolo simb){
     if(f==NULL){
         return APU_INVAL;
@@ -514,6 +539,22 @@ int lee_cadena_AF(AF* a, Lista* edos_final,Simbolo* cad){
     *edos_final = edos_origen;
     return OK;
 }
+int edo_en_acept_AF(AF* a, Estado edo){
+    if(a==NULL || edo==NULL){
+        return APU_INVAL;
+    }
+    Nodo* aux_acep = a->aceptacion_edos;
+    int ig=1;//No exite a priori
+
+    while(aux_acep != NULL){
+        ig = strcmp((Estado)aux_acep->dat,edo);
+        if(ig==0){
+            break;
+        }
+        aux_acep = aux_acep->sig;
+    }
+    return ig;
+}
 int cad_aceptada_AF(AF* a,Lista* edos_final/*,Lista* edos_acept*/){
     if(a==NULL || edos_final==NULL /*|| edos_acept==NULL*/){
         return APU_INVAL;
@@ -542,16 +583,73 @@ int cad_aceptada_AF(AF* a,Lista* edos_final/*,Lista* edos_acept*/){
     }
     return ig;
 }
-int cad_recur_print_AF(AF* a, Estado edo_actual, Simbolo* cad, int indice_cad,Lista errores,Lista camino){
+int cad_recur_print_AF(AF* a, Estado edo_actual, Simbolo* cad, int indice_cad,Lista* errores,Lista* camino){
     if(a==NULL || cad==NULL || edo_actual==NULL || indice_cad<0){
         return APU_INVAL;
     }
-    //if()
+    if(indice_cad>=strlen(cad)){
+        /*if Imprime el camino si es de aceptacion*/
+        if(edo_en_acept_AF(a,edo_actual)==0){
+            printf("Valido en: ");
+            print_ls(*camino,print_estado_ls);
+            printf("\n");
+        }
+        /*else Prueba, imprime los no validos*/
+        else{
+            printf("No valido en: ");
+            print_ls(*camino,print_estado_ls);
+            printf("\n");
+        }
+        /*if Imprime manejo de errores si no esta vacion*/
+        if(*errores!=NULL){
+            printf("Manejo errores: ");
+            print_ls(*errores,print_merror_ls);
+            printf("\n");
+        }
+        return OK;
+    }
+    char cad_simb = cad[indice_cad];
+    /*Si el simbolo no pertenece al alfabeto se ignora y se agrega para manejo de error*/
+    if(strchr(a->alfabeto,cad_simb)==NULL){
+        MError* err = crea_merror(edo_actual,cad_simb);
+        push_end_ls(errores,err);
+        cad_recur_print_AF(a,edo_actual,cad,indice_cad+1,errores,camino);
+        pop_end_ls(errores,(void**)&err);
+        elim_merror(err);
+        err=NULL;
+        return OK;
+    }
+    Funcion* func_edo;
+    Lista reglas_edo;
+    Regla* reg;
+    Estado edo_aux;
+    int err_f = funcion_de_estado(a,edo_actual,&func_edo);
+    if(err_f!=OK){
+        return err_f;
+    }
+    reglas_edo = func_edo->transiciones;
+    while (reglas_edo!=NULL){
+        reg = (Regla*)reglas_edo->dat;
+        reglas_edo = reglas_edo->sig;
+        if(reg->simb==cad_simb){
+            edo_aux = (Estado)malloc((strlen(reg->edo)+1)*sizeof(char));
+            strcpy(edo_aux,reg->edo);
+            push_end_ls(camino,edo_aux);
+            cad_recur_print_AF(a,edo_aux,cad,indice_cad+1,errores,camino);
+            pop_end_ls(camino,(void**)&edo_aux);
+            free(edo_aux);
+            edo_aux = NULL;
+        }
+    }
     return OK;
 }
 int lee_cadena_recur_print_AF(AF* a, Simbolo* cad){
     if(a==NULL || cad==NULL){
         return APU_INVAL;
     }
+    Lista errores = crea_ls();
+    Lista camino = crea_ls();
+    push_end_ls(&camino,a->inicio);
+    cad_recur_print_AF(a,a->inicio,cad,0,&errores,&camino);
     return OK;
 }
