@@ -290,11 +290,10 @@ void test_lectura_recursiva(){
     config_estado_error_AF(a);
     printf("Estados de error configurados...\n");
     print_AF(a);
-    char cad[] =  "baybaxab";
+    char cad[] =  "abxabyab";
     printf("Estado inicial: %s, Cadena: %s\n",a->inicio,cad);
     printf("Resultados:\n");
     lee_cadena_recur_print_AF(a,cad);
-    
     elim_AF(a);
     printf("Eliminacion de AFD correcta:\n");
 }

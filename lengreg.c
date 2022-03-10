@@ -602,11 +602,11 @@ int cad_recur_print_AF(AF* a, Estado edo_actual, Simbolo* cad, int indice_cad,Li
             printf("\n");
         }
         /*else Prueba, imprime los no validos*/
-        /*else{
+        else{
             printf("No valido en: ");
             print_ls(*camino,print_camino_ls);
             printf("\n");
-        }*/
+        }
         /*if Imprime manejo de errores si no esta vacion*/
         if(*errores!=NULL){
             printf("Manejo errores: ");

@@ -1,5 +1,4 @@
 #include "lista.h"
-#include <stdio.h>
 
 Lista crea_ls(){
     return NULL;
@@ -64,14 +63,20 @@ int pop_end_ls(Lista* lis,void** nuevo){
         return OK;
     }
     Nodo* aux = *lis;
-    Nodo* aux_sig = aux;
-    while (aux_sig->sig != NULL){
-        aux = aux_sig;
-        aux_sig = aux->sig;
+    Nodo* aux_s = *lis;
+    if(aux_s->sig==NULL){
+        *nuevo = aux_s->dat;
+        *lis = aux_s->sig;
+        free(aux_s);
+        return OK;
     }
-    *nuevo = aux_sig->dat;
-    aux->sig = aux_sig->sig;
-    free(aux_sig);
+    while (aux_s->sig != NULL){
+        aux = aux_s;
+        aux_s = aux->sig;
+    }
+    *nuevo = aux_s->dat;
+    aux->sig = aux_s->sig;
+    free(aux_s);
     return OK;
 }
 void print_ls(Lista lis,void (*func_print)(void* )){
