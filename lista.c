@@ -1,4 +1,5 @@
 #include "lista.h"
+#include <stdio.h>
 
 Lista crea_ls(){
     return NULL;
@@ -20,7 +21,7 @@ int push_end_ls(Lista* lis,void* nuevo){
         return APU_INVAL;
     }
     Nodo* n = (Nodo*)malloc(sizeof(Nodo));
-    Nodo* aux;
+    Nodo* aux,*aux_sig;
     if(n==NULL){
         return NO_MEM;
     }
@@ -31,12 +32,13 @@ int push_end_ls(Lista* lis,void* nuevo){
         return OK;
     }
     aux = *lis;
-    n->sig = *lis;
-    while(n->sig!=NULL){
-        aux = n->sig;
-        n->sig = aux->sig;
+    aux_sig = *lis;
+    while(aux_sig!=NULL){
+        aux = aux_sig;
+        aux_sig = aux->sig;
     }
     aux->sig = n;
+    n->sig = aux_sig;
     return OK;
 }
 int pop_ls(Lista* lis,void** nuevo){

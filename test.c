@@ -269,6 +269,7 @@ void test_lee_estados_arch(){
     elim_ls(&estados_destino,free);
     printf("Eliminacion de AFD correcta:\n");
 }
+
 void test_lectura_recursiva(){
     printf(">>>>>>>>>>>>>>  TEST LINEA ARCH <<<<<<<<<<<<<<<\n");
     char nom_arch[] = "input.txt";
@@ -289,7 +290,7 @@ void test_lectura_recursiva(){
     config_estado_error_AF(a);
     printf("Estados de error configurados...\n");
     print_AF(a);
-    char cad[] =  "axba";
+    char cad[] =  "baybaxab";
     printf("Estado inicial: %s, Cadena: %s\n",a->inicio,cad);
     printf("Resultados:\n");
     lee_cadena_recur_print_AF(a,cad);

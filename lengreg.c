@@ -6,6 +6,12 @@ void print_estado(Estado edo){
 void print_estado_ls(void* edo){
     print_estado((Estado) edo);
 }
+void print_camino(Estado edo){
+    printf("%s -> ",edo);
+}
+void print_camino_ls(void* edo){
+    print_camino((Estado) edo);
+}
 
 Regla* crea_regla(Estado edo_dest, Simbolo simb){
     if(edo_dest==NULL){
@@ -443,6 +449,7 @@ int funcion_de_estado(AF* a, Estado edo,Funcion** f){
     *f = f_aux;
     return OK;
 }
+
 int lee_simb_funcion_AF(Funcion *f, Lista* edos_destino, Simbolo simb){
     if(f==NULL){
         return APU_INVAL;
@@ -591,15 +598,15 @@ int cad_recur_print_AF(AF* a, Estado edo_actual, Simbolo* cad, int indice_cad,Li
         /*if Imprime el camino si es de aceptacion*/
         if(edo_en_acept_AF(a,edo_actual)==0){
             printf("Valido en: ");
-            print_ls(*camino,print_estado_ls);
+            print_ls(*camino,print_camino_ls);
             printf("\n");
         }
         /*else Prueba, imprime los no validos*/
-        else{
+        /*else{
             printf("No valido en: ");
-            print_ls(*camino,print_estado_ls);
+            print_ls(*camino,print_camino_ls);
             printf("\n");
-        }
+        }*/
         /*if Imprime manejo de errores si no esta vacion*/
         if(*errores!=NULL){
             printf("Manejo errores: ");
