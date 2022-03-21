@@ -44,7 +44,7 @@ void elim_regla_ls(void* r){
     elim_regla((Regla*)r);
 }
 void print_regla(Regla* r){
-    printf("(%c,'%s') ",r->simb,r->edo);
+    printf("(%c,%s) ",r->simb,r->edo);
 }
 void print_regla_ls(void* r){
     print_regla((Regla*)r);
@@ -600,19 +600,25 @@ int cad_recur_print_AF(AF* a, Estado edo_actual, Simbolo* cad, int indice_cad,Li
             printf("Valido en: ");
             print_ls(*camino,print_camino_ls);
             printf("\n");
+            //if Imprime manejo de errores si no esta vacio
+            if(*errores!=NULL){
+                printf("Manejo errores: ");
+                print_ls(*errores,print_merror_ls);
+                printf("\n");
+            }
         }
-        /*else Prueba, imprime los no validos*/
-        else{
+        //Imprime los no validos
+        /*else{
             printf("No valido en: ");
             print_ls(*camino,print_camino_ls);
             printf("\n");
-        }
-        /*if Imprime manejo de errores si no esta vacion*/
-        if(*errores!=NULL){
-            printf("Manejo errores: ");
-            print_ls(*errores,print_merror_ls);
-            printf("\n");
-        }
+            //if Imprime manejo de errores si no esta vacio
+            if(*errores!=NULL){
+                printf("Manejo errores: ");
+                print_ls(*errores,print_merror_ls);
+                printf("\n");
+            }
+        }*/
         return OK;
     }
     char cad_simb = cad[indice_cad];
@@ -643,6 +649,16 @@ int cad_recur_print_AF(AF* a, Estado edo_actual, Simbolo* cad, int indice_cad,Li
             strcpy(edo_aux,reg->edo);
             push_end_ls(camino,edo_aux);
             cad_recur_print_AF(a,edo_aux,cad,indice_cad+1,errores,camino);
+            pop_end_ls(camino,(void**)&edo_aux);
+            free(edo_aux);
+            edo_aux = NULL;
+        }
+        //Transiciones Epsilon
+        else if(reg->simb=='E'){
+            edo_aux = (Estado)malloc((strlen(reg->edo)+1)*sizeof(char));
+            strcpy(edo_aux,reg->edo);
+            push_end_ls(camino,edo_aux);
+            cad_recur_print_AF(a,edo_aux,cad,indice_cad,errores,camino);
             pop_end_ls(camino,(void**)&edo_aux);
             free(edo_aux);
             edo_aux = NULL;

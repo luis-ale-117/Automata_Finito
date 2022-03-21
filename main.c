@@ -10,10 +10,6 @@ int main(int argc, char** argv){
 
     printf("INGRESE EL ARCHIVO DEL AF: ");
     scanf("%s",nom_arch);
-    //printf("NOMBRE DEL ARCHIVO: %s\n",nom_arch);
-    printf("INGRESE LA CADENA A VERFICAR: ");
-    scanf("%s",cadena);
-    //printf("CADENA: %s\n",cadena);
 
     FILE* f = fopen(nom_arch,"r");
     AF* a = crea_AF();
@@ -34,6 +30,8 @@ int main(int argc, char** argv){
     config_estado_error_AF(a);
     print_AF(a);
     printf("====\n");
+    printf("INGRESE LA CADENA A VERFICAR: ");
+    scanf("%s",cadena);
     printf("Resultados:\n");
     lee_cadena_recur_print_AF(a,cadena);
     
